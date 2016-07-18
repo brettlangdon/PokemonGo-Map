@@ -208,7 +208,7 @@ def api_req(service, api_endpoint, access_token, *args, **kwargs):
 def get_api_endpoint(service, access_token, api=API_URL):
     profile_response = None
     while not profile_response:
-        profile_response = retrying_get_profile(access_token, api, None)
+        profile_response = retrying_get_profile(service, access_token, api, None)
         if not hasattr(profile_response, 'api_url'):
             debug("retrying_get_profile: get_profile returned no api_url, retrying")
             profile_response = None
@@ -220,10 +220,10 @@ def get_api_endpoint(service, access_token, api=API_URL):
     return ('https://%s/rpc' % profile_response.api_url)
 
 
-def retrying_get_profile(access_token, api, useauth, *reqq):
+def retrying_get_profile(service, access_token, api, useauth, *reqq):
     profile_response = None
     while not profile_response:
-        profile_response = get_profile(access_token, api, useauth, *reqq)
+        profile_response = get_profile(service, access_token, api, useauth, *reqq)
         if not hasattr(profile_response, 'payload'):
             debug("retrying_get_profile: get_profile returned no payload, retrying")
             profile_response = None
@@ -235,7 +235,7 @@ def retrying_get_profile(access_token, api, useauth, *reqq):
     return profile_response
 
 
-def get_profile(access_token, api, useauth, *reqq):
+def get_profile(service, access_token, api, useauth, *reqq):
     req = pokemon_pb2.RequestEnvelop()
     req1 = req.requests.add()
     req1.type = 2
@@ -420,7 +420,7 @@ def main():
         return
     print('[+] Received API endpoint: {}'.format(api_endpoint))
 
-    profile_response = retrying_get_profile(access_token, api_endpoint, None)
+    profile_response = retrying_get_profile(args.auth_service, access_token, api_endpoint, None)
     if profile_response is None or not profile_response.payload:
         print('[-] Ooops...')
         raise Exception("Could not get profile")
